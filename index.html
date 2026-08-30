@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Lotofácil Lab — análise estatística, probabilística e combinatória executada localmente no navegador.">
+  <title>Lotofácil Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Lotofácil Lab</h1>
+      <p>Motor estatístico, probabilístico e combinatório para análise experimental.</p>
+    </div>
+    <span class="privacy-badge">100% local · sem armazenamento</span>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>1. Histórico dos concursos</h2>
+          <p>Cole uma linha por concurso no formato especificado.</p>
+        </div>
+        <div class="actions">
+          <button id="exampleBtn" class="secondary">Carregar exemplo</button>
+          <button id="clearBtn" class="secondary">Limpar</button>
+        </div>
+      </div>
+
+      <textarea id="historyInput" spellcheck="false"
+        placeholder="Concurso: 3769 | Data: 23/08/2026 | Números: 01 02 03 04 05 09 10 11 15 16 17 21 23 24 25"></textarea>
+
+      <div class="grid-2">
+        <div>
+          <label for="candidateCount">Combinações candidatas</label>
+          <input id="candidateCount" type="number" min="1000" max="200000" step="1000" value="30000">
+          <small>Mais candidatos = pesquisa mais ampla, com maior custo computacional.</small>
+        </div>
+        <div>
+          <label for="monteCarloRuns">Simulações Monte Carlo</label>
+          <input id="monteCarloRuns" type="number" min="1000" max="200000" step="1000" value="20000">
+          <small>Usadas para calibração/diagnóstico, não para alterar as regras da loteria.</small>
+        </div>
+      </div>
+
+      <details class="advanced">
+        <summary>Pesos experimentais do modelo</summary>
+        <div class="weights">
+          <label>Frequência histórica <input id="wFreq" type="number" step="0.1" value="1.0"></label>
+          <label>Frequência recente <input id="wRecent" type="number" step="0.1" value="0.8"></label>
+          <label>Bayes <input id="wBayes" type="number" step="0.1" value="0.8"></label>
+          <label>Coocorrência de pares <input id="wPair" type="number" step="0.1" value="1.0"></label>
+          <label>Estrutura <input id="wStructure" type="number" step="0.1" value="0.9"></label>
+          <label>Repetição temporal <input id="wRepeat" type="number" step="0.1" value="0.8"></label>
+          <label>Dependência temporal <input id="wTemporal" type="number" step="0.1" value="0.5"></label>
+          <label>Regularização anti-extremos <input id="wRegularization" type="number" step="0.1" value="0.7"></label>
+          <label>Diversificação <input id="wDiversity" type="number" step="0.1" value="1.0"></label>
+        </div>
+      </details>
+
+      <button id="generateBtn" class="primary generate">Gerar 10 combinações</button>
+      <div id="status" class="status" aria-live="polite"></div>
+    </section>
+
+    <section id="summarySection" class="card hidden">
+      <div class="section-head">
+        <div>
+          <h2>2. Diagnóstico do histórico</h2>
+          <p>Resultados calculados a partir dos concursos fornecidos.</p>
+        </div>
+      </div>
+      <div id="summaryCards" class="metric-grid"></div>
+      <div class="grid-2">
+        <div>
+          <h3>Dezenas</h3>
+          <div id="numberTable"></div>
+        </div>
+        <div>
+          <h3>Estruturas</h3>
+          <div id="structureTable"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultsSection" class="card hidden">
+      <div class="section-head">
+        <div>
+          <h2>3. 10 combinações</h2>
+          <p>Ranking gerado pelo modelo experimental e depois diversificado.</p>
+        </div>
+        <button id="copyBtn" class="secondary">Copiar jogos</button>
+      </div>
+      <div id="games"></div>
+      <div class="notice">
+        <strong>Interpretação:</strong> o índice do modelo é um ranking interno de hipóteses.
+        Ele não representa uma probabilidade matemática real maior de uma combinação específica sair.
+        O software compara estratégias com uma baseline aleatória no backtesting.
+      </div>
+    </section>
+
+    <section id="backtestSection" class="card hidden">
+      <div class="section-head">
+        <div>
+          <h2>4. Backtesting walk-forward</h2>
+          <p>Testa o processo como se cada concurso futuro ainda não fosse conhecido.</p>
+        </div>
+        <button id="backtestBtn" class="secondary">Executar backtest</button>
+      </div>
+      <div id="backtestResult" class="muted">Clique em executar para validar o modelo.</div>
+    </section>
+
+    <section class="card methodology">
+      <h2>Modelo implementado</h2>
+      <div class="model-columns">
+        <div>
+          <h3>Probabilidade</h3>
+          <p>Espaço amostral C(25,15), hipergeométrica e probabilidades de interseção.</p>
+        </div>
+        <div>
+          <h3>Estatística</h3>
+          <p>Frequência, z-score, qui-quadrado, janelas móveis, pares, lift, autocorrelação e runs.</p>
+        </div>
+        <div>
+          <h3>Bayes</h3>
+          <p>Modelo Beta-Binomial com prior Beta(1,1) para shrinkage das frequências.</p>
+        </div>
+        <div>
+          <h3>Monte Carlo</h3>
+          <p>Distribuições de referência e diagnóstico de desvios em relação ao modelo aleatório.</p>
+        </div>
+        <div>
+          <h3>Combinatória</h3>
+          <p>Soma, paridade, faixas, consecutivos, gaps, repetição e coocorrência.</p>
+        </div>
+        <div>
+          <h3>Otimização</h3>
+          <p>Amostragem de candidatos + ranking + seleção gulosa com penalização de sobreposição.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Lotofácil Lab · experimental · sem promessa de aumento da probabilidade teórica</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
